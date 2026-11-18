@@ -188,12 +188,28 @@ const Modal = ({ onClose, children }) => (
 const Input = (p) => <input {...p} className={`w-full border border-stone-300 rounded-lg px-3 py-2 bg-white ${p.className || ""}`} />;
 
 function Login() {
+  const [err, setErr] = useState("");
+  async function signIn() {
+    setErr("");
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+    catch (e) {
+      const hints = {
+        "auth/unauthorized-domain": "This website address isn't authorised yet. In Firebase: Authentication → Settings → Authorized domains → add this site's address (without https://).",
+        "auth/operation-not-allowed": "Google sign-in isn't switched on. In Firebase: Authentication → Sign-in method → Google → Enable → Save.",
+        "auth/popup-blocked": "Your browser blocked the sign-in pop-up. Allow pop-ups for this site and try again.",
+        "auth/popup-closed-by-user": "The sign-in window was closed before finishing.",
+        "auth/invalid-api-key": "The Firebase apiKey in App.jsx looks wrong.",
+      };
+      setErr((hints[e.code] || "Sign-in failed.") + ` (${e.code || e.message})`);
+    }
+  }
   return (
     <div className="min-h-screen grid place-items-center bg-stone-50 p-6">
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-4 max-w-sm">
         <h1 className="text-3xl font-semibold text-stone-900">My Wardrobe</h1>
         <p className="text-stone-500">Sign in to open your closet.</p>
-        <button onClick={() => signInWithPopup(auth, new GoogleAuthProvider())} className="px-5 py-2.5 rounded-lg bg-stone-900 text-white">Sign in with Google</button>
+        <button onClick={signIn} className="px-5 py-2.5 rounded-lg bg-stone-900 text-white">Sign in with Google</button>
+        {err && <p className="text-sm text-red-600 text-left bg-red-50 rounded-lg p-3">{err}</p>}
       </div>
     </div>
   );
